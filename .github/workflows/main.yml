@@ -1,30 +1,20 @@
-name: Build Pipeline
+name: Manual Windows Build
 
 on:
-  # Run on all pushed commits, PRs and when a new release is created
-  # Prevents duplicate pipeline runs as a release also pushes a tag
-  pull_request:
-  push:
-    branches:
-      - '**'
-    tags-ignore:
-      - '**'
-  release:
-    types:
-      - created
+  # Trigger manually from GitHub Actions tab
+  workflow_dispatch:
 
 jobs:
   build:
-    # Prevent duplicate runs for own PRs
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: windows-2022
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v4
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
       with:
-        python-version: '3.13'
-        architecture: 'x64'
+        version: "latest"
+    - name: Set up Python
+      run: uv python install 3.13
     - name: Set version string
       shell: bash
       run: |
@@ -45,16 +35,16 @@ jobs:
       run: echo "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22000.0\x64" >> $GITHUB_PATH
     - name: Install Python dependencies
       run: |
-        pip install -r requirements.txt
+        uv sync
     - name: tests
       run: |
-        python -m unittest discover src -vv
+        uv run python -m unittest discover src -vv
     - name: Build Python Package
       run: |
-        python .\scripts\windows\update-version-info.py
-        pyinstaller --onefile .\src\diff.py --name git-xl-diff-x64.exe --version-file .\scripts\windows\git-xl-version-info.py --icon .\scripts\windows\git-xl-logo.ico
+        uv run python .\scripts\windows\update-version-info.py
+        uv run pyinstaller --onefile .\src\diff.py --name git-xl-diff-x64.exe --version-file .\scripts\windows\git-xl-version-info.py --icon .\scripts\windows\git-xl-logo.ico
         mv dist\git-xl-diff-x64.exe git-xl-diff-x64.exe
-        pyinstaller --onefile .\src\cli.py --name git-xl-x64.exe --version-file .\scripts\windows\git-xl-version-info.py --icon .\scripts\windows\git-xl-logo.ico
+        uv run pyinstaller --onefile .\src\cli.py --name git-xl-x64.exe --version-file .\scripts\windows\git-xl-version-info.py --icon .\scripts\windows\git-xl-logo.ico
         mv dist\git-xl-x64.exe git-xl-x64.exe
     - name: Sign exes and build installer
       run: |
@@ -66,11 +56,10 @@ jobs:
           mv git-xl-windows-0.0.0.exe dist\git-xl-windows-$env:VERSION_STRING.exe
         }
         signtool sign /f ${{ steps.write_file.outputs.filePath }} /p ${{ secrets.CODESIGN_PASSWORD }} /tr http://timestamp.sectigo.com /td sha256 /fd SHA256 dist\git-xl-windows-$env:VERSION_STRING.exe
-    - name: Upload artifacts (skipped for releases)
-      if: github.event_name != 'release'
-      uses: actions/upload-artifact@v1
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
       with:
-        name: Installer
+        name: windows-installer
         path: dist
     - name: Upload Windows Installer to GitHub Release Page
       if: github.event_name == 'release'
