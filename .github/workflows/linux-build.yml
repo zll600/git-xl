@@ -1,0 +1,76 @@
+name: Manual Linux Build
+
+on:
+  # Trigger manually from GitHub Actions tab
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
+      with:
+        version: "latest"
+    - name: Set up Python
+      run: uv python install 3.13
+    - name: Set version string
+      shell: bash
+      run: |
+        if [ ${GITHUB_REF::9} = "refs/tags" ]; then
+          version_string=${GITHUB_REF:10}
+        else
+          version_string=${GITHUB_SHA::7}
+        fi;
+        echo "VERSION_STRING=$(echo $version_string)" >> $GITHUB_ENV
+    - name: Install Python dependencies
+      run: |
+        uv sync
+    - name: Run tests
+      run: |
+        uv run python -m unittest discover src -vv
+    - name: Build Python Package
+      run: |
+        # Determine architecture for naming
+        ARCH=$(uname -m)
+        echo "Building for architecture: $ARCH"
+        
+        # Build the diff executable
+        uv run pyinstaller --onefile ./src/diff.py --name git-xl-diff-${ARCH} --clean
+        
+        # Build the main CLI executable
+        uv run pyinstaller --onefile ./src/cli.py --name git-xl-${ARCH} --clean
+        
+        # Move executables to root for easier access
+        mv dist/git-xl-diff-${ARCH} git-xl-diff-${ARCH}
+        mv dist/git-xl-${ARCH} git-xl-${ARCH}
+        
+        # Create a simple archive for distribution
+        tar -czf git-xl-linux-${ARCH}-${VERSION_STRING}.tar.gz git-xl-${ARCH} git-xl-diff-${ARCH}
+        mkdir -p dist
+        mv git-xl-linux-${ARCH}-${VERSION_STRING}.tar.gz dist/
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: linux-binaries
+        path: |
+          git-xl-*
+          dist/*.tar.gz
+    - name: Upload Linux Archive to GitHub Release Page
+      if: github.event_name == 'release'
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: dist/git-xl-linux-${{ env.VERSION_STRING }}.tar.gz
+        asset_name: git-xl-linux-${{ env.VERSION_STRING }}.tar.gz
+        asset_content_type: application/gzip
+    - name: Trigger Netlify webhook
+      if: github.event_name == 'release'
+      shell: bash
+      run: |
+        curl -X POST -d {} https://api.netlify.com/build_hooks/$NETLIFY_BUILD_HOOK
+      env:
+        NETLIFY_BUILD_HOOK: ${{ secrets.NETLIFY_BUILD_HOOK }} 
