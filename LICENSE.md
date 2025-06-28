@@ -1,6 +1,7 @@
 MIT License
 
-Copyright (c) 2018-present Zoomer Analytics LLC
+Copyright (c) 2018-2025 Zoomer Analytics LLC
+Copyright (c) 2025-present zll600
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
