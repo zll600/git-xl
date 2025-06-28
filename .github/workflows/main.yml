@@ -26,7 +26,7 @@ jobs:
         echo "VERSION_STRING=$(echo $version_string)" >> $GITHUB_ENV
     - name: Get Certificate
       id: write_file
-      uses: timheuer/base64-to-file@2d34558844bc851d6a653f79b3720f44dc6bff53
+      uses: timheuer/base64-to-file@604a8926a81a2da120d09b06bb76da9bba5aee6e
       with:
         fileName: 'cert.p12'
         encodedString: ${{ secrets.CODESIGN_CERTIFICATE }}
