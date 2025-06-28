@@ -32,7 +32,20 @@ class Installer:
 
         # determine if running as exe or in dev mode
         if is_frozen():
-            self.GIT_XL_DIFF = 'git-xl-diff.exe'
+            # Get the directory where the current executable is located
+            executable_dir = os.path.dirname(os.path.abspath(sys.executable))
+            
+            # Platform-specific executable names and paths
+            if sys.platform == 'win32':
+                diff_executable = 'git-xl-diff.exe'
+            else:
+                # For macOS/Linux, we need to determine the architecture-specific name
+                import platform
+                arch = platform.machine()
+                diff_executable = f'git-xl-diff-{arch}'
+            
+            # Use full path to the diff executable
+            self.GIT_XL_DIFF = os.path.join(executable_dir, diff_executable)
         else:
             executable_path = sys.executable.replace('\\', '/')
             differ_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'diff.py').replace('\\', '/')
@@ -167,7 +180,7 @@ class Installer:
             os.remove(path)
 
 
-GIT_XL_VERSION = f'git-xl/{VERSION} (windows; Python {PYTHON_VERSION}); git {GIT_COMMIT}'
+GIT_XL_VERSION = f'git-xl/{VERSION} ({sys.platform}; Python {PYTHON_VERSION}); git {GIT_COMMIT}'
 
 HELP_GENERIC = f"""{GIT_XL_VERSION}
 git xl <command> [<args>]\n

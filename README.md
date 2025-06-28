@@ -8,7 +8,7 @@ The extension makes `git diff` work for Excel VBA (xls, xlt, xla, xlam, xlsx, xl
 
 With Git XL installed, Git can diff Excel VBA just like any other source code file.
 
-It is written in Python, with pre-compiled binaries available for Windows.
+It is written in Python, with pre-compiled binaries available for Windows and macOS.
 
 Installation instructions and docs are available at [https://www.xltrail.com/git-xl](https://www.xltrail.com/git-xl).
 
@@ -16,9 +16,15 @@ Installation instructions and docs are available at [https://www.xltrail.com/git
 ## Getting Started 
 
 ### Installation
+
+#### Windows
 You can install the Git XL client on Windows, using the pre-compiled binary installer.
 
-This repository can also be built-from-source using Python and PyInstaller.
+#### macOS
+For macOS, you can build from source using the provided scripts. See [BUILDING.md](BUILDING.md) for detailed instructions.
+
+#### Build from Source
+This repository can also be built-from-source using Python and PyInstaller on both Windows and macOS.
 
 Git XL requires a global installation once per-machine. This can be done by
 running:

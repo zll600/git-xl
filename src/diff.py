@@ -45,7 +45,7 @@ if __name__ == '__main__':
     path_workbook_b = os.path.abspath(workbook_b) if workbook_b != 'nul' and workbook_b != '/dev/null' else None
 
     workbook_a_modules = get_vba(path_workbook_a)
-    workbook_b_modules = {} if workbook_b == 'nul' else get_vba(path_workbook_b)
+    workbook_b_modules = {} if workbook_b in ('nul', '/dev/null') else get_vba(path_workbook_b)
 
     diffs = []
     for module_a, vba_a in workbook_a_modules.items():
