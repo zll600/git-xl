@@ -1,0 +1,11 @@
+[project]
+name = ""
+version = "0.0.1"
+dependencies = [
+    "colorama==0.4.6",
+    "oletools==0.60.2",
+    "pyinstaller>=6.0.0",
+]
+
+[tool.uv]
+package = false
