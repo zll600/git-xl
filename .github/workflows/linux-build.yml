@@ -51,7 +51,7 @@ jobs:
         mkdir -p dist
         mv git-xl-linux-${ARCH}-${VERSION_STRING}.tar.gz dist/
     - name: Upload artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: linux-binaries
         path: |
